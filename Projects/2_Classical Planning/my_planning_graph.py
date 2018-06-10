@@ -16,7 +16,13 @@ class ActionLayer(BaseActionLayer):
         layers.ActionNode
         """
         # TODO: implement this function
-        raise NotImplementedError
+
+        for effectA in actionA.effects:
+            for effectB in actionB.effects:
+                if effectA == ~effectB:
+                    return True
+
+        return False
 
 
     def _interference(self, actionA, actionB):
@@ -27,7 +33,18 @@ class ActionLayer(BaseActionLayer):
         layers.ActionNode
         """
         # TODO: implement this function
-        raise NotImplementedError
+
+        for effectA in actionA.effects:
+            for preconditionB in actionB.preconditions:
+                if effectA == ~preconditionB:
+                    return True
+
+        for effectB in actionB.effects:
+            for preconditionA in actionA.preconditions:
+                if effectB == ~preconditionA:
+                    return True
+
+        return False
 
     def _competing_needs(self, actionA, actionB):
         """ Return True if any preconditions of the two actions are pairwise mutex in the parent layer
@@ -38,7 +55,12 @@ class ActionLayer(BaseActionLayer):
         layers.BaseLayer.parent_layer
         """
         # TODO: implement this function
-        raise NotImplementedError
+        for preconditionA in actionA.preconditions:
+            for preconditionB in actionB.preconditions:
+                if self.parent_layer.is_mutex(preconditionA, preconditionB):
+                    return True
+
+        return False
 
 
 class LiteralLayer(BaseLiteralLayer):
@@ -51,12 +73,16 @@ class LiteralLayer(BaseLiteralLayer):
         layers.BaseLayer.parent_layer
         """
         # TODO: implement this function
-        raise NotImplementedError
+        for actionA in self.parents[literalA]:
+            for actionB in self.parents[literalB]:
+                if not self.parent_layer.is_mutex(actionA, actionB):
+                    return False
+        return True
 
     def _negation(self, literalA, literalB):
         """ Return True if two literals are negations of each other """
         # TODO: implement this function
-        raise NotImplementedError
+        return literalA == ~literalB
 
 
 class PlanningGraph:
@@ -120,7 +146,32 @@ class PlanningGraph:
         Russell-Norvig 10.3.1 (3rd Edition)
         """
         # TODO: implement this function
-        raise NotImplementedError
+        
+        # initialize a goal_set as a copy of the one provided from the problem
+        # probably best so we don't mess with the self.goal variable
+        # as we are removing goals whenever we see it in a state layer as we expand
+        goal_set = self.goal.copy()
+        # initialize a dict with keys being the goal literals
+        # and initial value of 0 for the cost of each
+        goal_calc_dict = {}
+        for goal_literal in goal_set:
+            goal_calc_dict[goal_literal] = 0
+
+        while goal_set:
+            # check and see if there's any goal literal in the last
+            # literal layer of the graph
+            for literal in self.literal_layers[-1]:
+                if literal in goal_set:
+                    goal_set.remove(literal)
+
+            self._extend() # extend the graph
+
+            # add +1 to the cost for each goal literal still in the goal_set
+            for goal_literal in goal_set:
+                goal_calc_dict[goal_literal] += 1
+
+        # return the sum of the level costs for each goal literal (level sum)
+        return sum(goal_calc_dict.values())
 
     def h_maxlevel(self):
         """ Calculate the max level heuristic for the planning graph
@@ -150,7 +201,32 @@ class PlanningGraph:
         WARNING: you should expect long runtimes using this heuristic with A*
         """
         # TODO: implement maxlevel heuristic
-        raise NotImplementedError
+
+        # initialize a goal_set as a copy of the one provided from the problem
+        # probably best so we don't mess with the self.goal variable
+        # as we are removing goals whenever we see it in a state layer as we expand
+        goal_set = self.goal.copy()
+        # initialize a dict with keys being the goal literals
+        # and initial value of 0 for the cost of each
+        goal_calc_dict = {}
+        for goal_literal in goal_set:
+            goal_calc_dict[goal_literal] = 0
+
+        while goal_set:
+            # check and see if there's any goal literal in the last
+            # literal layer of the graph
+            for literal in self.literal_layers[-1]:
+                if literal in goal_set:
+                    goal_set.remove(literal)
+
+            self._extend() # extend the graph
+
+            # add +1 to the cost for each goal literal still in the goal_set
+            for goal_literal in goal_set:
+                goal_calc_dict[goal_literal] += 1
+
+        # return the max of the level costs for each goal literal (max level)
+        return max(goal_calc_dict.values())
 
     def h_setlevel(self):
         """ Calculate the set level heuristic for the planning graph
@@ -175,7 +251,30 @@ class PlanningGraph:
         WARNING: you should expect long runtimes using this heuristic on complex problems
         """
         # TODO: implement setlevel heuristic
-        raise NotImplementedError
+        # following the pseudo code with the more efficient implementation suggestion
+        set_level = 0
+        while True:
+            all_goals_met = True
+            for goal_literal in self.goal:
+                if goal_literal not in self.literal_layers[-1]:
+                    all_goals_met = False
+            if not all_goals_met:
+                self._extend()
+                set_level += 1
+                continue
+
+            goals_are_mutex = False
+            for goal_literalA in self.goal:
+                for goal_literalB in self.goal:
+                    if self.literal_layers[-1].is_mutex(goal_literalA, goal_literalB):
+                        goals_are_mutex = True
+            if not goals_are_mutex:
+                return set_level
+            else:
+                self._extend()
+                set_level += 1
+                continue
+
 
     ##############################################################################
     #                     DO NOT MODIFY CODE BELOW THIS LINE                     #
