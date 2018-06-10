@@ -1,0 +1,18 @@
+[
+    {
+        "description": "1. get_action() calls self.queue.put() at least once before timeout",
+        "advice": "",
+        "traceback": "AssertionError: False is not true : Your agent did not call self.queue.put() with a valid action             within 150 milliseconds from state Isolation(board=36673929622983978135459049288147951, ply_count=50, locs=(71, 44))\n\n",
+        "result": "F",
+        "message": "",
+        "rubric_item_id": "11286"
+    },
+    {
+        "description": "2. CustomPlayer successfully completes a game against itself",
+        "advice": "",
+        "traceback": "AssertionError: False is not true : Your agent did not play until a terminal state.\n",
+        "result": "F",
+        "message": "",
+        "rubric_item_id": "11287"
+    }
+]
