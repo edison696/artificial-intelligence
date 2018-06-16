@@ -125,6 +125,7 @@ def _play(agents, game_state, time_limit, match_id):
             logger.info(RESULT_INFO.format(
                 Status.INVALID_MOVE, game_state, game_history, agents[1 - active_idx], agents[active_idx]
             ))
+            logger.info("action: {}".format(action))
             winner = agents[1 - active_idx]
             break
 

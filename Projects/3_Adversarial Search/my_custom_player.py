@@ -22,49 +22,50 @@ class CustomPlayer(DataPlayer):
   **********************************************************************
   """
   def get_action(self, state):
-      """ Employ an adversarial search technique to choose an action
-      available in the current state calls self.queue.put(ACTION) at least
+    """ Employ an adversarial search technique to choose an action
+    available in the current state calls self.queue.put(ACTION) at least
 
-      This method must call self.queue.put(ACTION) at least once, and may
-      call it as many times as you want; the caller is responsible for
-      cutting off the function after the search time limit has expired. 
+    This method must call self.queue.put(ACTION) at least once, and may
+    call it as many times as you want; the caller is responsible for
+    cutting off the function after the search time limit has expired. 
 
-      See RandomPlayer and GreedyPlayer in sample_players for more examples.
+    See RandomPlayer and GreedyPlayer in sample_players for more examples.
 
-      **********************************************************************
-      NOTE: 
-      - The caller is responsible for cutting off search, so calling
-        get_action() from your own code will create an infinite loop!
-        Refer to (and use!) the Isolation.play() function to run games.
-      **********************************************************************
-      """
-      # TODO: Replace the example implementation below with your own search
-      #       method by combining techniques from lecture
-      #
-      # EXAMPLE: choose a random move without any search--this function MUST
-      #          call self.queue.put(ACTION) at least once before time expires
-      #          (the timer is automatically managed for you)
+    **********************************************************************
+    NOTE: 
+    - The caller is responsible for cutting off search, so calling
+      get_action() from your own code will create an infinite loop!
+      Refer to (and use!) the Isolation.play() function to run games.
+    **********************************************************************
+    """
+    # TODO: Replace the example implementation below with your own search
+    #       method by combining techniques from lecture
+    #
+    # EXAMPLE: choose a random move without any search--this function MUST
+    #          call self.queue.put(ACTION) at least once before time expires
+    #          (the timer is automatically managed for you)
 
-      depth_limit = 20
+    depth_limit = 100
 
-      for depth in range(1, depth_limit + 1):
-        action = self.alpha_beta(state, depth)
+    for depth in range(1, depth_limit + 1):
+      action = self.alpha_beta(state, depth)
+      if action is not None:
         self.queue.put(action)
-        DEBUG_INFO = open("depth_ply_action.txt", "a")
-        DEBUG_INFO.write("added action to queue " + str(action) + "\n")
-        DEBUG_INFO.write("***********************************\n")
-        DEBUG_INFO.close()
+
+      # writing debug info to a file
+      # DEBUG_INFO = open("depth_ply_action.txt", "a")
+      # DEBUG_INFO.write("added action to queue " + str(action) + "\n")
+      # DEBUG_INFO.write("***********************************\n")
+      # DEBUG_INFO.close()
 
   def alpha_beta(self, state, depth):
     """Alpha beta pruning with iterative deepening"""
     
-    alpha = float("-inf")
     beta = float("inf")
     best_score = float("-inf")
     best_move = None
     for a in state.actions():
-        v = self.min_value(state.result(a), alpha, beta, depth - 1)
-        alpha = max(alpha, v)
+        v = self.min_value(state.result(a), best_score, beta, depth - 1)
         if v > best_score:
             best_score = v
             best_move = a
@@ -105,15 +106,11 @@ class CustomPlayer(DataPlayer):
         return v
       alpha = max(alpha, v)
     return v
-  
+    
   def score(self, state):
-    # # own moves - opponent moves heuristic
+    # own moves - opponent moves heuristic
     own_loc = state.locs[self.player_id]
     opp_loc = state.locs[1 - self.player_id]
     own_liberties = state.liberties(own_loc)
     opp_liberties = state.liberties(opp_loc)
     return len(own_liberties) - len(opp_liberties)
-
-    # own moves heuristic
-    # loc = state.locs[self.player_id]
-    # return len(state.liberties(loc))
