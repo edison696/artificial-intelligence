@@ -70,20 +70,20 @@ class CustomPlayer(DataPlayer):
             best_score = v
             best_move = a
     # open a file for writing debug info
-    DEBUG_INFO = open("depth_ply_action.txt", "a")
-    DEBUG_INFO.write("board state " + "Isolation(board=" + str(state.board) + ", ply_count=" + str(state.ply_count) + ", locs=" + str(state.locs) + ")\n")
-    DEBUG_INFO.write("depth " + str(depth) + "\n")
-    DEBUG_INFO.write("ply count " + str(state.ply_count) + "\n")
-    DEBUG_INFO.write("best move " + str(best_move) + "\n")
-    DEBUG_INFO.write("----------------------------------\n")
-    DEBUG_INFO.close()
+    # DEBUG_INFO = open("depth_ply_action.txt", "a")
+    # DEBUG_INFO.write("board state " + "Isolation(board=" + str(state.board) + ", ply_count=" + str(state.ply_count) + ", locs=" + str(state.locs) + ")\n")
+    # DEBUG_INFO.write("depth " + str(depth) + "\n")
+    # DEBUG_INFO.write("ply count " + str(state.ply_count) + "\n")
+    # DEBUG_INFO.write("best move " + str(best_move) + "\n")
+    # DEBUG_INFO.write("----------------------------------\n")
+    # DEBUG_INFO.close()
     return best_move
 
   def min_value(self, state, alpha, beta, depth):
-    if state.terminal_test():
-      return state.utility(self.player_id)
     if depth <= 0:
       return self.score(state)
+    if state.terminal_test():
+      return state.utility(self.player_id)
 
     v = float("inf")
     for a in state.actions():
@@ -94,10 +94,10 @@ class CustomPlayer(DataPlayer):
     return v
 
   def max_value(self, state, alpha, beta, depth):
-    if state.terminal_test():
-      return state.utility(self.player_id)
     if depth <= 0:
       return self.score(state)
+    if state.terminal_test():
+      return state.utility(self.player_id)
     
     v = float("-inf")
     for a in state.actions():
