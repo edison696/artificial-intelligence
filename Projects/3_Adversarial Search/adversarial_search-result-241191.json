@@ -1,18 +1,18 @@
 [
     {
-        "message": "",
         "traceback": "",
-        "description": "1. get_action() calls self.queue.put() at least once before timeout",
         "result": ".",
         "rubric_item_id": "11286",
+        "message": "",
+        "description": "1. get_action() calls self.queue.put() at least once before timeout",
         "advice": ""
     },
     {
-        "message": "",
         "traceback": "",
-        "description": "2. CustomPlayer successfully completes a game against itself",
         "result": ".",
         "rubric_item_id": "11287",
+        "message": "",
+        "description": "2. CustomPlayer successfully completes a game against itself",
         "advice": ""
     }
 ]
