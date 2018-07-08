@@ -60,6 +60,11 @@ def naked_twins(values):
     The first convention is preferred for consistency with the other strategies,
     and because it is simpler (since the reduce_puzzle function already calls this
     strategy repeatedly).
+
+    See Also
+    --------
+    Pseudocode for this algorithm on github:
+    https://github.com/udacity/artificial-intelligence/blob/master/Projects/1_Sudoku/pseudocode.md
     """
     # TODO: Implement this function!
     naked_twins_list = []
