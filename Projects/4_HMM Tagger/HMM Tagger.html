@@ -12207,24 +12207,44 @@ Stream (word, tag) pairs:
 <span class="sd">    you should return a dictionary such that pair_counts[NOUN][time] == 1244</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># TODO: Finish this function!</span>
-    <span class="n">pair_counts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">pair_counts</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># Empty dictionary, each key will be a Counter (special dic where each key is a number, and if it&#39;s not there its count is 0)</span>
     
-    <span class="k">for</span> <span class="n">sequence_a</span><span class="p">,</span> <span class="n">sequence_b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sequences_A</span><span class="p">,</span> <span class="n">sequences_B</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sequence_a</span><span class="p">,</span> <span class="n">sequence_b</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">pair_counts</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">pair_counts</span><span class="p">[</span><span class="n">a</span><span class="p">]:</span>
-                    <span class="n">pair_counts</span><span class="p">[</span><span class="n">a</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">pair_counts</span><span class="p">[</span><span class="n">a</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">pair_counts</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-                <span class="n">pair_counts</span><span class="p">[</span><span class="n">a</span><span class="p">][</span><span class="n">b</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c1"># Flatten the input ((&quot;NOUN&quot;, &quot;VERB&quot;), (&quot;VERB&quot;, &quot;NOUN&quot;, &quot;VERB&quot;)) -&gt; [&#39;NOUN&#39;, &#39;VERB&#39;, &#39;VERB&#39;, &#39;NOUN&#39;, &#39;VERB&#39;]</span>
+    <span class="n">sequences_A</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">sequences_A</span><span class="p">))</span>
+    <span class="n">sequences_B</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">sequences_B</span><span class="p">))</span>
+    
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sequences_A</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">sequences_A</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">sequences_B</span><span class="p">)</span>  <span class="c1"># Sequences should be of the same length</span>
+    
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">first_key</span> <span class="o">=</span> <span class="n">sequences_A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">first_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pair_counts</span><span class="p">:</span>
+            <span class="n">pair_counts</span><span class="p">[</span><span class="n">first_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span> <span class="c1"># Every unique element of A will have a Counter (special dic) e.g.: {&#39;NOUN&#39;: Counter(), &#39;VERB&#39;: Counter()}</span>
+    
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">first_key</span><span class="p">,</span> <span class="n">second_key</span> <span class="o">=</span> <span class="n">sequences_A</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">sequences_B</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">pair_counts</span><span class="p">[</span><span class="n">first_key</span><span class="p">][</span><span class="n">second_key</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="c1"># pair_counts(Y, X) -&gt; {&#39;VERB&#39;: Counter({&#39;run&#39;: 1, &#39;See&#39;: 1, &#39;ran&#39;: 1}), &#39;NOUN&#39;: Counter({&#39;Spot&#39;: 2})}</span>
+    <span class="c1"># pair_counts(X, Y) -&gt; {&#39;See&#39;: Counter({&#39;VERB&#39;: 1}), &#39;Spot&#39;: Counter({&#39;NOUN&#39;: 2}), &#39;run&#39;: Counter({&#39;VERB&#39;: 1}), &#39;ran&#39;: Counter({&#39;VERB&#39;: 1})}</span>
+        
+<span class="c1">#     initial solution</span>
+<span class="c1">#     pair_counts = dict()</span>
+<span class="c1">#     for sequence_a, sequence_b in zip(sequences_A, sequences_B):</span>
+<span class="c1">#         for a, b in zip(sequence_a, sequence_b):</span>
+<span class="c1">#             if a in pair_counts:</span>
+<span class="c1">#                 if b in pair_counts[a]:</span>
+<span class="c1">#                     pair_counts[a][b] += 1</span>
+<span class="c1">#                 else:</span>
+<span class="c1">#                     pair_counts[a][b] = 1</span>
+<span class="c1">#             else:</span>
+<span class="c1">#                 pair_counts[a] = dict()</span>
+<span class="c1">#                 pair_counts[a][b] = 1</span>
     
     <span class="k">return</span> <span class="n">pair_counts</span>
 
 
 <span class="c1"># Calculate C(t_i, w_i)</span>
-<span class="n">emission_counts</span> <span class="o">=</span> <span class="n">pair_counts</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">Y</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">X</span><span class="p">)</span> <span class="c1"># TODO: YOUR CODE HERE)</span>
+<span class="n">emission_counts</span> <span class="o">=</span> <span class="n">pair_counts</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">training_set</span><span class="o">.</span><span class="n">Y</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">training_set</span><span class="o">.</span><span class="n">X</span><span class="p">)</span> <span class="c1"># TODO: YOUR CODE HERE)</span>
 
 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">emission_counts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">12</span><span class="p">,</span> \
        <span class="s2">&quot;Uh oh. There should be 12 tags in your dictionary.&quot;</span>
@@ -12293,23 +12313,32 @@ Stream (word, tag) pairs:
 <span class="c1"># TODO: calculate the frequency of each tag being assigned to each word (hint: similar, but not</span>
 <span class="c1"># the same as the emission probabilities) and use it to fill the mfc_table</span>
 
-<span class="n">word_counts</span> <span class="o">=</span> <span class="n">pair_counts</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">training_set</span><span class="o">.</span><span class="n">Y</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">training_set</span><span class="o">.</span><span class="n">X</span><span class="p">)</span> <span class="c1"># TODO: YOUR CODE HERE)</span>
+<span class="n">word_counts</span> <span class="o">=</span> <span class="n">pair_counts</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">training_set</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">training_set</span><span class="o">.</span><span class="n">Y</span><span class="p">)</span> <span class="c1"># TODO: YOUR CODE HERE)</span>
+<span class="c1">#{&#39;See&#39;: Counter({&#39;VERB&#39;: 1}), &#39;Spot&#39;: Counter({&#39;NOUN&#39;: 2}), &#39;run&#39;: Counter({&#39;VERB&#39;: 1}), &#39;ran&#39;: Counter({&#39;VERB&#39;: 1})}</span>
 
-<span class="n">mfc_table</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span> <span class="c1"># TODO: YOUR CODE HERE</span>
-<span class="c1"># mfc_table = {(word, max(tag, key=lambda x: word_counts[x][word])) for tag in word_counts.keys() for word in word_counts[tag].keys()}</span>
-<span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">word_counts</span><span class="p">:</span>
-    <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">word_counts</span><span class="p">[</span><span class="n">tag</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">mfc_table</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">word_counts</span><span class="p">[</span><span class="n">tag</span><span class="p">][</span><span class="n">word</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">mfc_table</span><span class="p">[</span><span class="n">word</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
-                <span class="n">mfc_table</span><span class="p">[</span><span class="n">word</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">word_counts</span><span class="p">[</span><span class="n">tag</span><span class="p">][</span><span class="n">word</span><span class="p">]</span>
-                <span class="n">mfc_table</span><span class="p">[</span><span class="n">word</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">tag</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">mfc_table</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">word_counts</span><span class="p">[</span><span class="n">tag</span><span class="p">][</span><span class="n">word</span><span class="p">],</span> <span class="n">tag</span><span class="p">]</span>
+<span class="c1"># TODO: YOUR CODE HERE</span>
+<span class="n">mfc_table</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span> <span class="c1"># {&#39;Spot&#39;: &#39;NOUN&#39;, &#39;See&#39;: &#39;VERB&#39;, &#39;ran&#39;: &#39;VERB&#39;, &#39;run&#39;: &#39;VERB&#39;}</span>
 
-<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">mfc_table</span><span class="p">:</span>
-    <span class="n">mfc_table</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">mfc_table</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
-            
-<span class="c1"># print(mfc_table)</span>
+<span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">word_counts</span><span class="p">:</span>
+    <span class="n">mfc_table</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="o">=</span> <span class="n">word_counts</span><span class="p">[</span><span class="n">word</span><span class="p">]</span><span class="o">.</span><span class="n">most_common</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># word_counts[&#39;time&#39;] == {&#39;time&#39;: Counter({&#39;NOUN&#39;: 10, &#39;VERB&#39;: 2})</span>
+    <span class="c1"># word_counts[&#39;time&#39;].most_common(1) == [(&#39;NOUN&#39;, 10)]</span>
+    <span class="c1"># word_counts[&#39;time&#39;].most_common(1)[0][0] == &#39;NOUN&#39;</span>
+
+<span class="c1"># previous solution - unneeded double inversion of X and Y, plus no knowledge of Counter class</span>
+<span class="c1"># mfc_table = dict()</span>
+<span class="c1"># # mfc_table = {(word, max(tag, key=lambda x: word_counts[x][word])) for tag in word_counts.keys() for word in word_counts[tag].keys()}</span>
+<span class="c1"># for tag in word_counts:</span>
+<span class="c1">#     for word in word_counts[tag]:</span>
+<span class="c1">#         if word in mfc_table:</span>
+<span class="c1">#             if word_counts[tag][word] &gt; mfc_table[word][0]:</span>
+<span class="c1">#                 mfc_table[word][0] = word_counts[tag][word]</span>
+<span class="c1">#                 mfc_table[word][1] = tag</span>
+<span class="c1">#         else:</span>
+<span class="c1">#             mfc_table[word] = [word_counts[tag][word], tag]</span>
+
+<span class="c1"># for key in mfc_table:</span>
+<span class="c1">#     mfc_table[key] = mfc_table[key][1]</span>
 
 <span class="c1"># DO NOT MODIFY BELOW THIS LINE</span>
 <span class="n">mfc_model</span> <span class="o">=</span> <span class="n">MFCTagger</span><span class="p">(</span><span class="n">mfc_table</span><span class="p">)</span> <span class="c1"># Create a Most Frequent Class tagger instance</span>
@@ -12601,12 +12630,22 @@ testing accuracy mfc_model: 93.01%
     <span class="c1"># TODO: Finish this function!</span>
     <span class="n">unigram_counts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
     
-    <span class="k">for</span> <span class="n">sequence</span> <span class="ow">in</span> <span class="n">sequences</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">sequence</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">unigram_counts</span><span class="p">:</span>
-                <span class="n">unigram_counts</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">unigram_counts</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">sequences</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">sequences</span><span class="p">))</span>
+    <span class="n">unigram_counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">sequences</span><span class="p">)</span>
+    <span class="c1"># Counter magic! :)</span>
+    <span class="c1"># sequences == [&#39;VERB&#39;, &#39;VERB&#39;, &#39;NOUN&#39;, &#39;ADJ&#39;, &#39;ADJ&#39;, &#39;VERB&#39;]</span>
+    <span class="c1"># Counter(sequences) == {&#39;VERB&#39;: 3, &#39;NOUN&#39;: 1, &#39;ADJ&#39;: 2}</span>
+    
+    
+<span class="c1">#     initial solution</span>
+<span class="c1">#     unigram_counts = dict()</span>
+    
+<span class="c1">#     for sequence in sequences:</span>
+<span class="c1">#         for tag in sequence:</span>
+<span class="c1">#             if tag in unigram_counts:</span>
+<span class="c1">#                 unigram_counts[tag] += 1</span>
+<span class="c1">#             else:</span>
+<span class="c1">#                 unigram_counts[tag] = 1</span>
     
     <span class="k">return</span> <span class="n">unigram_counts</span>
 
@@ -12728,7 +12767,7 @@ testing accuracy mfc_model: 93.01%
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[19]:</div>
+<div class="prompt input_prompt">In&nbsp;[16]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">starting_counts</span><span class="p">(</span><span class="n">sequences</span><span class="p">):</span>
@@ -12769,7 +12808,7 @@ testing accuracy mfc_model: 93.01%
 
 <div class="output_area">
 
-<div class="prompt output_prompt">Out[19]:</div>
+<div class="prompt output_prompt">Out[16]:</div>
 
 
 
@@ -12794,7 +12833,7 @@ testing accuracy mfc_model: 93.01%
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[20]:</div>
+<div class="prompt input_prompt">In&nbsp;[17]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">ending_counts</span><span class="p">(</span><span class="n">sequences</span><span class="p">):</span>
@@ -12835,7 +12874,7 @@ testing accuracy mfc_model: 93.01%
 
 <div class="output_area">
 
-<div class="prompt output_prompt">Out[20]:</div>
+<div class="prompt output_prompt">Out[17]:</div>
 
 
 
@@ -12878,7 +12917,7 @@ testing accuracy mfc_model: 93.01%
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[49]:</div>
+<div class="prompt input_prompt">In&nbsp;[18]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">basic_model</span> <span class="o">=</span> <span class="n">HiddenMarkovModel</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;base-hmm-tagger&quot;</span><span class="p">)</span>
@@ -12940,7 +12979,7 @@ testing accuracy mfc_model: 93.01%
 
 <div class="output_area">
 
-<div class="prompt output_prompt">Out[49]:</div>
+<div class="prompt output_prompt">Out[18]:</div>
 
 
 
@@ -12956,7 +12995,7 @@ testing accuracy mfc_model: 93.01%
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[50]:</div>
+<div class="prompt input_prompt">In&nbsp;[19]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">hmm_training_acc</span> <span class="o">=</span> <span class="n">accuracy</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">training_set</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">training_set</span><span class="o">.</span><span class="n">Y</span><span class="p">,</span> <span class="n">basic_model</span><span class="p">)</span>
@@ -12985,14 +13024,14 @@ testing accuracy mfc_model: 93.01%
 
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>training accuracy basic hmm model: 97.54%
-testing accuracy basic hmm model: 96.18%
+testing accuracy basic hmm model: 95.96%
 </pre>
 </div>
 </div>
 
 <div class="output_area">
 
-<div class="prompt output_prompt">Out[50]:</div>
+<div class="prompt output_prompt">Out[19]:</div>
 
 
 
@@ -13016,7 +13055,7 @@ testing accuracy basic hmm model: 96.18%
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[51]:</div>
+<div class="prompt input_prompt">In&nbsp;[20]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">testing_set</span><span class="o">.</span><span class="n">keys</span><span class="p">[:</span><span class="mi">3</span><span class="p">]:</span>
