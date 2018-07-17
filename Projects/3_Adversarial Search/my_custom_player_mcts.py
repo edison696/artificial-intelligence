@@ -118,7 +118,3 @@ class Node():
     self.children.append(child)
     child.action = action
     child.parent = self
-
-  def add_parent(self, state):
-    v = Node(state)
-    self.parent = v
