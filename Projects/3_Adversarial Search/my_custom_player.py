@@ -61,7 +61,7 @@ class CustomPlayer(DataPlayer):
       # if state is a terminal state, it won't have anything to expand.
       # In that case, just add a random action to the queue and continue
       # in order to be able to pass the test "test_get_action_terminal"
-      if state.terminal_test:
+      if state.terminal_test():
         self.queue.put(random.choice(state.actions()))
         continue
       best_action = None
