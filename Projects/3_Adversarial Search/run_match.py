@@ -13,7 +13,7 @@ from multiprocessing.pool import ThreadPool as Pool
 
 from isolation import Isolation, Agent, play
 from sample_players import RandomPlayer, GreedyPlayer, MinimaxPlayer
-from my_custom_player import CustomPlayer
+from my_custom_player_mcts import CustomPlayer
 
 logger = logging.getLogger(__name__)
 
