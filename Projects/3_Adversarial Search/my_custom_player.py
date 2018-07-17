@@ -45,135 +45,83 @@ class CustomPlayer(DataPlayer):
     #          call self.queue.put(ACTION) at least once before time expires
     #          (the timer is automatically managed for you)
 
-    depth_limit = 100
-
     if state.ply_count < 2:
       self.queue.put(random.choice(state.actions()))
     else:
-      for depth in range(1, depth_limit + 1):
-        action = self.alpha_beta(state, depth)
-        if action is not None:
-          self.queue.put(action)
+      self.uct_search(state)
 
-  def alpha_beta(self, state, depth):
-    """Alpha beta pruning with iterative deepening"""
-    beta = float("inf")
-    best_score = float("-inf")
-    best_move = None
-    for a in state.actions():
-        v = self.min_value(state.result(a), best_score, beta, depth - 1)
-        if v > best_score:
-            best_score = v
-            best_move = a
-    # writing depth and ply count info
-    # DEBUG_INFO = open("depth,ply_count.txt", "a")
-    # DEBUG_INFO.write(str(depth) + ", " + str(state.ply_count) + "\n")
-    # DEBUG_INFO.close()
-    return best_move
-
-  def min_value(self, state, alpha, beta, depth):
-    if depth <= 0:
-      return self.custom_heuristics(state)
-    if state.terminal_test():
-      return state.utility(self.player_id)
-
-    v = float("inf")
-    for a in state.actions():
-      v = min(v, self.max_value(state.result(a), alpha, beta, depth - 1))
-      if v <= alpha:
-        return v
-      beta = min(beta, v)
+# Monte Carlo Tree Search
+  def uct_search(self, state):
+    v0 = Node(state)
+    while True:
+      v1 = self.tree_policy(v0)
+      delta = self.default_policy(v1.state)
+      self.backup(v1, delta)
+      best = self.best_child(v0, 0) # get the child with the max avg score (since c == 0)
+      # if state is a terminal state, it won't have anything to expand.
+      # In that case, just add a random action to the queue and continue
+      # in order to be able to pass the test "test_get_action_terminal"
+      if state.terminal_test:
+        self.queue.put(random.choice(state.actions()))
+        continue
+      best_action = None
+      # get the action that results in that best child
+      for action in v0.state.actions():
+        if v0.state.result(action) == best.state:
+          best_action = action
+      self.queue.put(best_action)
+  
+  # choosing a node for expansion
+  def tree_policy(self, v):
+    while not v.state.terminal_test():
+      # if v not fully expanded - there are more actions from the node state than children nodes
+      if len(v.state.actions()) > len(v.children):
+        return self.expand(v)
+      else:
+        v = self.best_child(v, 1/math.sqrt(2))
     return v
 
-  def max_value(self, state, alpha, beta, depth):
-    if depth <= 0:
-      return self.custom_heuristics(state)
-    if state.terminal_test():
-      return state.utility(self.player_id)
+  # expanding nodes
+  def expand(self, v):
+    # choose a random untried action
+    action = random.choice([a for a in v.state.actions() if a not in [child.action for child in v.children]])
+    v1 = Node(v.state.result(action))
+    v.add_child(v1, action)
+    return v1
 
-    v = float("-inf")
-    for a in state.actions():
-      v = max(v, self.min_value(state.result(a), alpha, beta, depth - 1))
-      if v >= beta:
-        return v
-      alpha = max(alpha, v)
-    return v
+  def best_child(self, v, c):
+    return max(v.children, key=lambda x: (x.Q / x.N) + (c * math.sqrt(2 * math.log(v.N) / x.N)), default=None)
 
-  def score(self, state):
-    """
-    own moves - opponent moves heuristic
-    """
-    own_loc = state.locs[self.player_id]
-    opp_loc = state.locs[1 - self.player_id]
-    own_liberties = state.liberties(own_loc)
-    opp_liberties = state.liberties(opp_loc)
-    return len(own_liberties) - len(opp_liberties)
+  # rollout
+  def default_policy(self, state):
+    player_id = state.player() # active player at the start of the simulation
+    while not state.terminal_test():
+      action = random.choice(state.actions())
+      state = state.result(action)
+    return 1 if state.utility(player_id) < 0 else -1
+    # the default policy should return +1 if the agent holding initiative 
+    # at the start of a simulation loses 
+    # and -1 if the active agent when the simulation starts wins 
+    # because nodes store the reward relative to their parent in the game tree.
 
-  def custom_heuristics(self, state):
-    """
-    Linear combinations of features can be effective.
-    Features for Isolation can include the ply, the distance between the player's tokens,
-    distance from the edge (or center), and more (be creative).
-    """
-    own_loc = state.locs[self.player_id]
-    opp_loc = state.locs[1 - self.player_id]
-    player_distance = self.manhattan_distance(self.get_coordinates(own_loc), self.get_coordinates(opp_loc))
-    own_moves_minus_opp_moves = self.score(state)
+  def backup(self, v, delta):
+    while v is not None:
+      v.N += 1
+      v.Q += delta
+      delta = -delta
+      v = v.parent
 
-    if state.ply_count < 30:
-      # chase the opponent for the first 30 moves
-      return own_moves_minus_opp_moves - player_distance
-    elif state.ply_count < 45:
-      # move away from the opponent and the center (presumably using up corner space for moves) up to 45 moves
-      return player_distance + own_moves_minus_opp_moves + self.distance_to_center(self.get_coordinates(own_loc))
-    else:
-      # endgame get close to the opponent and the center
-      return 0 - player_distance + own_moves_minus_opp_moves - self.distance_to_center(self.get_coordinates(own_loc))
 
-  def custom_heuristics_2(self, state):
-    """
-    Linear combinations of features can be effective.
-    Features for Isolation can include the ply, the distance between the player's tokens,
-    distance from the edge (or center), and more (be creative).
-    """
-    own_loc = state.locs[self.player_id]
-    opp_loc = state.locs[1 - self.player_id]
-    player_distance = self.manhattan_distance(self.get_coordinates(own_loc), self.get_coordinates(opp_loc))
-    own_moves_minus_opp_moves = self.score(state)
+class Node():
+  def __init__(self, state):
+    self.state = state
+    self.children = []
+    self.parent = None
+    self.action = None
+    self.N = 0
+    self.Q = 0
 
-    if state.ply_count < 30:
-      # chase the opponent for the first 30 moves
-      return own_moves_minus_opp_moves - player_distance
-    elif state.ply_count < 50:
-      # stay close to the opponent and the center up to 50 moves
-      return 0 - player_distance + own_moves_minus_opp_moves + self.distance_to_center(self.get_coordinates(own_loc))
-    else:
-      # endgame - stay away from the oponent but still try to stay close to center
-      # increace the effect of own_moves_minus_opp_moves value times 2 since
-      # we'd like to keep its influence a bit higher in the endgame
-      return player_distance + (own_moves_minus_opp_moves * 2) - self.distance_to_center(self.get_coordinates(own_loc))
-
-  def own_moves(self, state):
-    own_loc = state.locs[self.player_id]
-    own_liberties = state.liberties(own_loc)
-    return len(own_liberties)
-
-  def get_coordinates(self, int_location):
-    """
-    Gets x,y coordinates out of an integer location
-    """
-    x = int_location % 13 # get column
-    y = math.floor(int_location/13) # get row
-    return x, y
-
-  def distance_to_center(self, location):
-    """
-    Manhattan distance to center from given location
-    """
-    return self.manhattan_distance(location, (5, 4))
-
-  def manhattan_distance(self, loc1, loc2):
-    """
-    Returns the manhattan distance between two points (loc1 and loc2)
-    """
-    return abs(loc1[0] - loc2[0]) + abs(loc1[1] - loc2[1])
+  def add_child(self, child, action):
+    self.children.append(child)
+    child.action = action
+    child.parent = self
