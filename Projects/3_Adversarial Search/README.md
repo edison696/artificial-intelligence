@@ -161,3 +161,4 @@ The script will automatically create a zip archive of the required files (`my_cu
 ----------------------------
 `my_custom_player_orig.py` is the original file used to submit the project choosing option 1
 `my_custom_player.py` is just experimenting with option 3, using Monte Carlo Tree Search
+`my_custom_player_using_opening_book.py` is the same as `my_custom_player_orig.py`, but using a (relatively bad) opening book for the first four moves. The opening book was built by using random rollouts.
